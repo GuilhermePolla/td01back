@@ -9,13 +9,14 @@ import org.gy.back.repositories.ActorRepository;
 import org.gy.back.repositories.MovieRepository;
 import org.gy.back.services.JsonService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.xml.transform.Result;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
@@ -132,7 +133,7 @@ public class Controller {
 
 
     @GetMapping("/getrelations")
-    public ResponseEntity<List<ActorsMovieVo>> getRelation(@RequestBody Map<String, Object> requestBody) throws Exception {
+    public ResponseEntity<List<ActorsMovieVo>> getRelation(@RequestBody Map<String, Object> requestBody){
         String starting = (String) requestBody.get("starting");
         String target = (String) requestBody.get("target");
 
