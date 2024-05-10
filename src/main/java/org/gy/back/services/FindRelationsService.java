@@ -8,10 +8,7 @@ import org.gy.back.repositories.MovieRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 @Service
 public class FindRelationsService {
@@ -26,7 +23,7 @@ public class FindRelationsService {
 
     private List<List<ActorsMovieVo>> result = new ArrayList<>();
     private List<ActorsMovieVo> tempList = new ArrayList<>();
-    private Integer limit = 6;
+    private Integer limit = 20;
 
     @Autowired
     public FindRelationsService(ActorRepository actorRepository, MovieRepository movieRepository) {
@@ -51,33 +48,87 @@ public class FindRelationsService {
         if (!actorsHashMap.containsKey(target)) {
             throw new RuntimeException("You've done goofed 2");
         }
-        recursiveSearch(starting, target);
+        search(starting, target);
         return result;
     }
 
-    private void recursiveSearch(Actor starting, String target) {
-        for (String movieString : starting.getWorks()) {
-            if (!seenMovies.contains(movieString)) {
-                seenMovies.add(movieString);
-                Movie movie = moviesHashMap.get(movieString);
-                for (String actorString : movie.getCast()) {
-                    if (!seenActors.contains(actorString)) {
-                        seenActors.add(actorString);
-                        Actor actor = actorsHashMap.get(actorString);
-                        tempList.add(new ActorsMovieVo(starting, actor, movie));
-                        if (actor.getName().equals(target)) {
-                            result.add(tempList);
-                            tempList = new ArrayList<>();
-                        }
-                        recursiveSearch(actor, target);
-                        if (!tempList.isEmpty()) {
-                            tempList.removeLast();
+
+    private void search(Actor starting, String target) {
+        LinkedList<List<ActorsMovieVo>> queue = new LinkedList<>();
+        seenActors.add(starting.getName());
+        for (String firstLayerMovieString : starting.getWorks()) {
+            Movie firstLayerMovie = moviesHashMap.get(firstLayerMovieString);
+            seenMovies.add(firstLayerMovieString);
+            for (String firstLayerActorString : firstLayerMovie.getCast())
+                if (!seenActors.contains(firstLayerActorString)) {
+                    Actor firstLayerActor = actorsHashMap.get(firstLayerActorString);
+                    ActorsMovieVo actorsMovieVoFirstLayer = new ActorsMovieVo(starting, firstLayerActor, firstLayerMovie);
+                    List<ActorsMovieVo> firstLayerList = new ArrayList<>();
+                    firstLayerList.add(actorsMovieVoFirstLayer);
+                    if (firstLayerActorString.equals(target)) {
+                        result.add(firstLayerList);
+                    } else {
+                        queue.addLast(firstLayerList);
+                        seenActors.add(firstLayerActorString);
+                    }
+                }
+        }
+        for (List<ActorsMovieVo> amvList : queue) {
+            queue.removeFirst();
+            ActorsMovieVo amv = amvList.getLast();
+            Actor fromActor = amv.getTo();
+            for (String movieString : fromActor.getWorks()) {
+                if (!seenMovies.contains(movieString)) {
+                    seenMovies.add(movieString);
+                    Movie movie = moviesHashMap.get(movieString);
+                    for (String toActorString : movie.getCast()){
+                        if(!seenActors.contains(toActorString)){
+                            Actor toActor = actorsHashMap.get(toActorString);
+                            ActorsMovieVo actorsMovieVo = new ActorsMovieVo(fromActor,toActor,movie);
+                            amvList.add(actorsMovieVo);
+                            if(toActorString.equals(target)){
+                                result.add(amvList);
+                            }else {
+                                if (amvList.size() < 5) {
+                                    queue.addLast(amvList);
+                                }
+                                seenActors.add(toActorString);
+                            }
                         }
                     }
                 }
-                return;
-
             }
         }
     }
 }
+
+//    private void recursiveSearch(Actor starting, String target) {
+//        for (String movieString : starting.getWorks()) {
+//            if (!seenMovies.contains(movieString)) {
+//                seenMovies.add(movieString);
+//                Movie movie = moviesHashMap.get(movieString);
+//                for (String actorString : movie.getCast()) {
+//                    if(actorString.equals(target)){
+//                        Actor actor = actorsHashMap.get(actorString);
+//                        tempList.add(new ActorsMovieVo(starting, actor, movie));
+//                        result.add(tempList);
+//                        tempList = new ArrayList<>();
+//                        continue;
+//                    }
+//                    if (!seenActors.contains(actorString)) {
+//                        seenActors.add(actorString);
+//                        Actor actor = actorsHashMap.get(actorString);
+//                        tempList.add(new ActorsMovieVo(starting, actor, movie));
+//                        if (!Objects.equals(actorString, target)) {
+//                            recursiveSearch(actor, target);
+//                        }
+//                        if (!tempList.isEmpty()) {
+//                            tempList.removeLast();
+//                        }
+//                    }
+//                }
+//                return;
+//
+//            }
+//        }
+//    }
