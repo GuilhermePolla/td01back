@@ -22,8 +22,6 @@ public class FindRelationsService {
     private HashSet<String> seenMovies = new HashSet<>();
 
     private List<List<ActorsMovieVo>> result = new ArrayList<>();
-    private List<ActorsMovieVo> tempList = new ArrayList<>();
-    private Integer limit = 20;
 
     @Autowired
     public FindRelationsService(ActorRepository actorRepository, MovieRepository movieRepository) {
@@ -48,49 +46,64 @@ public class FindRelationsService {
         if (!actorsHashMap.containsKey(target)) {
             throw new RuntimeException("You've done goofed 2");
         }
-        search(starting, target);
+        search(starting, target, getAll);
         return result;
     }
 
 
-    private void search(Actor starting, String target) {
+    private void search(Actor starting, String target, Boolean getAll) {
         LinkedList<List<ActorsMovieVo>> queue = new LinkedList<>();
         seenActors.add(starting.getName());
+
         for (String firstLayerMovieString : starting.getWorks()) {
             Movie firstLayerMovie = moviesHashMap.get(firstLayerMovieString);
             seenMovies.add(firstLayerMovieString);
-            for (String firstLayerActorString : firstLayerMovie.getCast())
+
+            for (String firstLayerActorString : firstLayerMovie.getCast()) {
                 if (!seenActors.contains(firstLayerActorString)) {
                     Actor firstLayerActor = actorsHashMap.get(firstLayerActorString);
                     ActorsMovieVo actorsMovieVoFirstLayer = new ActorsMovieVo(starting, firstLayerActor, firstLayerMovie);
                     List<ActorsMovieVo> firstLayerList = new ArrayList<>();
                     firstLayerList.add(actorsMovieVoFirstLayer);
+
                     if (firstLayerActorString.equals(target)) {
                         result.add(firstLayerList);
+                        if(!getAll){
+                            return;
+                        }
                     } else {
                         queue.addLast(firstLayerList);
                         seenActors.add(firstLayerActorString);
                     }
                 }
+            }
         }
-        for (List<ActorsMovieVo> amvList : queue) {
-            queue.removeFirst();
-            ActorsMovieVo amv = amvList.getLast();
+
+        while (!queue.isEmpty()) {
+            List<ActorsMovieVo> currentRoute = queue.removeFirst();
+            ActorsMovieVo amv = currentRoute.get(currentRoute.size() - 1);
             Actor fromActor = amv.getTo();
+
             for (String movieString : fromActor.getWorks()) {
                 if (!seenMovies.contains(movieString)) {
                     seenMovies.add(movieString);
                     Movie movie = moviesHashMap.get(movieString);
-                    for (String toActorString : movie.getCast()){
-                        if(!seenActors.contains(toActorString)){
+
+                    for (String toActorString : movie.getCast()) {
+                        if (!seenActors.contains(toActorString)) {
                             Actor toActor = actorsHashMap.get(toActorString);
-                            ActorsMovieVo actorsMovieVo = new ActorsMovieVo(fromActor,toActor,movie);
-                            amvList.add(actorsMovieVo);
-                            if(toActorString.equals(target)){
-                                result.add(amvList);
-                            }else {
-                                if (amvList.size() < 5) {
-                                    queue.addLast(amvList);
+                            ActorsMovieVo actorsMovieVo = new ActorsMovieVo(fromActor, toActor, movie);
+                            List<ActorsMovieVo> newRoute = new ArrayList<>(currentRoute);
+                            newRoute.add(actorsMovieVo);
+
+                            if (toActorString.equals(target)) {
+                                result.add(newRoute);
+                                if(!getAll){
+                                    return;
+                                }
+                            } else {
+                                if (newRoute.size() < 5) {
+                                    queue.addLast(newRoute);
                                 }
                                 seenActors.add(toActorString);
                             }
@@ -100,6 +113,7 @@ public class FindRelationsService {
             }
         }
     }
+
 }
 
 //    private void recursiveSearch(Actor starting, String target) {

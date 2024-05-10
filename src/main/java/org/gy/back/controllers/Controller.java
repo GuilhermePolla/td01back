@@ -152,16 +152,18 @@ public class Controller {
             result.add(acv);
         }
         return ResponseEntity.ok(result);
-    }@GetMapping("/getrelations")
+    }
+    @GetMapping("/getrelations")
     public ResponseEntity<List<List<ActorsMovieVo>>> getRelation(@RequestParam Map<String, Object> requestBody){
         String starting = (String) requestBody.get("starting");
         String target = (String) requestBody.get("target");
+        Boolean getAll = Boolean.parseBoolean((String) requestBody.get("getAll"));
 
         if (starting == null || starting.isEmpty() || target == null || target.isEmpty()) {
             throw new IllegalArgumentException("Nomes dos atores de início e destino não foram fornecidos");
         }
         FindRelationsService finder = new FindRelationsService(actorRepository,movieRepository);
-        List<List<ActorsMovieVo>> result = finder.getRelations(starting,target,null);
+        List<List<ActorsMovieVo>> result = finder.getRelations(starting,target,getAll);
         return ResponseEntity.ok(result);
     }
 
