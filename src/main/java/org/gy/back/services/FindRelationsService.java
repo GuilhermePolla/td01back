@@ -81,7 +81,7 @@ public class FindRelationsService {
 
         while (!queue.isEmpty()) {
             List<ActorsMovieVo> currentRoute = queue.removeFirst();
-            ActorsMovieVo amv = currentRoute.get(currentRoute.size() - 1);
+            ActorsMovieVo amv = currentRoute.getLast();
             Actor fromActor = amv.getTo();
 
             for (String movieString : fromActor.getWorks()) {
@@ -101,8 +101,8 @@ public class FindRelationsService {
                                 if(!getAll){
                                     return;
                                 }
-                            } else {
-                                if (newRoute.size() < 5) {
+                            }else {
+                                if (newRoute.size() < 3) {
                                     queue.addLast(newRoute);
                                 }
                                 seenActors.add(toActorString);

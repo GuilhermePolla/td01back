@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@CrossOrigin(origins = "http://localhost:3000")
 @RestController
 @RequestMapping("/api")
 public class Controller {
@@ -133,7 +134,7 @@ public class Controller {
     }
 
 
-    @GetMapping("/getrelationsdummy")
+    @GetMapping("/getrelationsdummy2")
     public ResponseEntity<List<ActorsMovieVo>> getRelationdummy(@RequestBody Map<String, Object> requestBody){
         String starting = (String) requestBody.get("starting");
         String target = (String) requestBody.get("target");
@@ -157,13 +158,27 @@ public class Controller {
     public ResponseEntity<List<List<ActorsMovieVo>>> getRelation(@RequestParam Map<String, Object> requestBody){
         String starting = (String) requestBody.get("starting");
         String target = (String) requestBody.get("target");
-        Boolean getAll = Boolean.parseBoolean((String) requestBody.get("getAll"));
+        Boolean getAll = Boolean.parseBoolean((String) requestBody.get("sixConnections"));
 
         if (starting == null || starting.isEmpty() || target == null || target.isEmpty()) {
             throw new IllegalArgumentException("Nomes dos atores de início e destino não foram fornecidos");
         }
         FindRelationsService finder = new FindRelationsService(actorRepository,movieRepository);
         List<List<ActorsMovieVo>> result = finder.getRelations(starting,target,getAll);
+        return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/getfiltered")
+    public ResponseEntity<List<String>> getFilteredActors(@RequestParam Map<String, Object> requestParams){
+        String filter = (String) requestParams.get("filter");
+        if(filter == null || filter.isEmpty()){
+            return ResponseEntity.ok(new ArrayList<String>());
+        }
+        List<Actor> allFilteredActors = actorRepository.getByString(filter);
+        List<String> result = new ArrayList<String>();
+        allFilteredActors.forEach(actor -> {
+            result.add(actor.getName());
+        });
         return ResponseEntity.ok(result);
     }
 
