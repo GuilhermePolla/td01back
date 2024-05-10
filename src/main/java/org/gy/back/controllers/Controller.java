@@ -7,6 +7,7 @@ import org.gy.back.models.Movie;
 import org.gy.back.models.vos.ActorsMovieVo;
 import org.gy.back.repositories.ActorRepository;
 import org.gy.back.repositories.MovieRepository;
+import org.gy.back.services.FindRelationsService;
 import org.gy.back.services.JsonService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -53,7 +54,7 @@ public class Controller {
                     } else {
                         actor = new Actor(castMember);
                     }
-                    actor.addToColegas(movie.getCast());
+                    actor.addToWorks(movie.getTitle());
                     actors.put(castMember, actor);
                 }
             }
@@ -132,8 +133,8 @@ public class Controller {
     }
 
 
-    @GetMapping("/getrelations")
-    public ResponseEntity<List<ActorsMovieVo>> getRelation(@RequestBody Map<String, Object> requestBody){
+    @GetMapping("/getrelationsdummy")
+    public ResponseEntity<List<ActorsMovieVo>> getRelationdummy(@RequestBody Map<String, Object> requestBody){
         String starting = (String) requestBody.get("starting");
         String target = (String) requestBody.get("target");
 
@@ -150,6 +151,17 @@ public class Controller {
                     startingActor, targetActor, new Movie("xxx", "A volta dos que não foram", new ArrayList<>()));
             result.add(acv);
         }
+        return ResponseEntity.ok(result);
+    }@GetMapping("/getrelations")
+    public ResponseEntity<List<List<ActorsMovieVo>>> getRelation(@RequestParam Map<String, Object> requestBody){
+        String starting = (String) requestBody.get("starting");
+        String target = (String) requestBody.get("target");
+
+        if (starting == null || starting.isEmpty() || target == null || target.isEmpty()) {
+            throw new IllegalArgumentException("Nomes dos atores de início e destino não foram fornecidos");
+        }
+        FindRelationsService finder = new FindRelationsService(actorRepository,movieRepository);
+        List<List<ActorsMovieVo>> result = finder.getRelations(starting,target,null);
         return ResponseEntity.ok(result);
     }
 

@@ -11,13 +11,13 @@ import java.util.List;
 @Setter
 public class Actor extends DefaultEntity {
     private String name;
-    private HashSet<String> colleagues = new HashSet<>();
+    private HashSet<String> works = new HashSet<>();
 
     public Actor(String name){
         this.name = name;
     }
 
-    public void addToColegas (List<String> actors){
-        this.colleagues.addAll(actors);
+    public void addToWorks (String movie){
+        this.works.add(movie);
     }
 }
