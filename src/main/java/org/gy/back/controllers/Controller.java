@@ -133,7 +133,7 @@ public class Controller {
     }
 
 
-    @GetMapping("/getrelationsdummy")
+    @GetMapping("/getrelationsdummy2")
     public ResponseEntity<List<ActorsMovieVo>> getRelationdummy(@RequestBody Map<String, Object> requestBody){
         String starting = (String) requestBody.get("starting");
         String target = (String) requestBody.get("target");
